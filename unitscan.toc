@@ -3,4 +3,5 @@
 ## Title: unitscan
 ## Notes: Unit scanner with flashy alert
 ## SavedVariables: unitscan_targets
+rares.lua
 unitscan.lua
