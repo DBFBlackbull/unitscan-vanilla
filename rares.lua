@@ -3,57 +3,74 @@
 -- npc ID is only for easy look up on wowhead. It is not used in the code.
 
 unitscan_rares = {
-	-- Deadmines
-	["Miner Johnson"] = 3586,
+	["Deadmines"] = {
+		["Miner Johnson"] = 3586,
+	},
 
-	-- Wailing Caverns
-	["Deviate Faerie Dragon"] = 5912,
+	["Wailing Caverns"] = {
+		["Deviate Faerie Dragon"] = 5912,
+	},
 
-	-- Shadowfang Keep
-	["Deathsworn Captain"] = 3872,
+	["Shadowfang Keep"] = {
+		["Deathsworn Captain"] = 3872,
+	},
 
-	-- The Stockade
-	["Bruegal Ironknuckle"] = 1720,
 
-	-- Gnomeregan
-	["Dark Iron Ambassador"] = 6228,
+	["The Stockade"] = {
+		["Bruegal Ironknuckle"] = 1720,
+	},
 
-	-- Scarlet Monastery - Graveyard
-	["Azshir the Sleepless"] = 6490,
-	["Fallen Champion"] = 6488,
-	["Ironspine"] = 6489,
 
-	-- Razorfen Kraul
-	["Earthcaller Halmgar"] = 4842,
-	["Blind Hunter"] = 4425,
+	["Gnomeregan"] = {
+		["Dark Iron Ambassador"] = 6228,
+	},
 
-	-- Razorfen Downs
-	["Ragglesnout"] = 7354,
 
-	-- Maraudon
-	["Meshlok the Harvester"] = 12237,
+	["Scarlet Monastery - Graveyard"] = {
+		["Azshir the Sleepless"] = 6490,
+		["Fallen Champion"] = 6488,
+		["Ironspine"] = 6489,
+	},
 
-	-- Zul'Farrak
-	["Sandarr Dunereaver"] = 10080,
-	["Dustwraith"] = 10081,
-	["Zerillis"] = 10082,
+	["Razorfen Kraul"] = {
+		["Earthcaller Halmgar"] = 4842,
+		["Blind Hunter"] = 4425,
+	},
 
-	-- Blackrock Depths
-	["Panzor the Invincible"] = 8923,
+	["Razorfen Downs"] = {
+		["Ragglesnout"] = 7354,
+	},
 
-	-- Stratholme
-	["Skul"] = 10393,
-	["Stonespine"] = 10809,
+	["Maraudon"] = {
+		["Meshlok the Harvester"] = 12237,
+	},
 
-	-- Lower Blackrock Spire
-	["Bannok Grimaxe"] = 9596, -- Arcanite Reaper
-	["Burning Felguard"] = 10263,
-	["Crystal Fang"] = 10376,
-	["Ghok Bashguud"] = 9718,
-	["Spirestone Lord Magus"] = 9217,
-	["Spirestone Battle Lord"] = 9218,
-	["Spirestone Butcher"] = 9219,
+	["Zul'Farrak"] = {
+		["Sandarr Dunereaver"] = 10080,
+		["Dustwraith"] = 10081,
+		["Zerillis"] = 10082,
+	},
 
-	-- Upper Blackrock Spire
-	["Jed Runewatcher"] = 10509,
+	["Blackrock Depths"] = {
+		["Panzor the Invincible"] = 8923,
+	},
+
+	["Stratholme"] = {
+		["Skul"] = 10393,
+		["Stonespine"] = 10809,
+	},
+
+	["Blackrock Spire"] = {
+		-- Lower Blackrock Spire
+		["Bannok Grimaxe"] = 9596,
+		["Burning Felguard"] = 10263,
+		["Crystal Fang"] = 10376,
+		["Ghok Bashguud"] = 9718,
+		["Spirestone Lord Magus"] = 9217,
+		["Spirestone Battle Lord"] = 9218,
+		["Spirestone Butcher"] = 9219,
+
+		-- Upper Blackrock Spire
+		["Jed Runewatcher"] = 10509,
+	},
 }

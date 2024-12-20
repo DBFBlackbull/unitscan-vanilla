@@ -2,28 +2,39 @@ local unitscan = CreateFrame'Frame'
 local BROWN = {.7, .15, .05}
 local YELLOW = {1, 1, .15}
 local CHECK_INTERVAL = .1
+local last_zone = ''
 
 unitscan_targets = {}
 
-unitscan:SetScript('OnUpdate', unitscan.UPDATE)
-unitscan:SetScript('OnEvent', unitscan.OnEvent)
-unitscan:RegisterEvent'VARIABLES_LOADED'
-unitscan:RegisterEvent'ADDON_LOADED'
-
 function unitscan.OnEvent()
 	if event == 'VARIABLES_LOADED' then
-		return unitscan.load()
+		return unitscan.LOAD()
 	end
 
-	if event == 'ADDON_LOADED' and arg1 == 'unitscan' then
-		return unitscan.ADDON_LOADED()
+	if event == 'PLAYER_ENTERING_WORLD' then
+		return unitscan.ZONE_CHANGE()
 	end
 end
 
-function unitscan.ADDON_LOADED()
-	for name, _ in pairs(unitscan_rares) do
-		unitscan.add_target(name)
+function unitscan.ZONE_CHANGE()
+	local zone = GetRealZoneText()
+	local isInstance = IsInInstance()
+
+	if isInstance == nil and unitscan_rares[last_zone] then
+		unitscan.print("Leaving instance "..last_zone..". Removing rare mobs.")
+		for name, _ in pairs(unitscan_rares[last_zone]) do
+			unitscan.remove_target(name)
+		end
 	end
+
+	if isInstance and unitscan_rares[zone] then
+		unitscan.print("Entering instance "..zone..". Scanning for rare mobs.")
+		for name, _ in pairs(unitscan_rares[zone]) do
+			unitscan.add_target(name)
+		end
+	end
+
+	last_zone = zone
 end
 
 do
@@ -378,12 +389,20 @@ function unitscan.toggle_target(name)
 
 	unitscan.add_target(key)
 end
-	
+
+unitscan:SetScript('OnUpdate', unitscan.UPDATE)
+unitscan:SetScript('OnEvent', unitscan.OnEvent)
+unitscan:RegisterEvent'VARIABLES_LOADED'
+unitscan:RegisterEvent'PLAYER_ENTERING_WORLD'
+
 SLASH_UNITSCAN1 = '/unitscan'
 function SlashCmdList.UNITSCAN(parameter)
 	local name = unitscan.get_key(parameter)
-	
+
 	if name == '' then
+		if next(unitscan_targets) == nil then
+			return unitscan.print("Not scanning for any units")
+		end
 		for _, key in ipairs(unitscan.sorted_targets()) do
 			unitscan.print(key)
 		end
