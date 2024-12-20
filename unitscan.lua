@@ -1,13 +1,30 @@
 local unitscan = CreateFrame'Frame'
-unitscan:SetScript('OnUpdate', function() unitscan.UPDATE() end)
-unitscan:SetScript('OnEvent', function() unitscan.LOAD() end)
-unitscan:RegisterEvent'VARIABLES_LOADED'
-
 local BROWN = {.7, .15, .05}
 local YELLOW = {1, 1, .15}
 local CHECK_INTERVAL = .1
 
 unitscan_targets = {}
+
+unitscan:SetScript('OnUpdate', unitscan.UPDATE)
+unitscan:SetScript('OnEvent', unitscan.OnEvent)
+unitscan:RegisterEvent'VARIABLES_LOADED'
+unitscan:RegisterEvent'ADDON_LOADED'
+
+function unitscan.OnEvent()
+	if event == 'VARIABLES_LOADED' then
+		return unitscan.load()
+	end
+
+	if event == 'ADDON_LOADED' and arg1 == 'unitscan' then
+		return unitscan.ADDON_LOADED()
+	end
+end
+
+function unitscan.ADDON_LOADED()
+	for name, _ in pairs(unitscan_rares) do
+		unitscan.add_target(name)
+	end
+end
 
 do
 	local last_played
@@ -316,26 +333,62 @@ function unitscan.sorted_targets()
 	return sorted_targets
 end
 
-function unitscan.toggle_target(name)
-	local key = strupper(name)
-	if unitscan_targets[key] then
-		unitscan_targets[key] = nil
-		unitscan.print('- ' .. key)
-	elseif key ~= '' then
-		unitscan_targets[key] = true
-		unitscan.print('+ ' .. key)
+function unitscan.get_key(name)
+	local _, _, key = strfind(name, '^%s*(.-)%s*$') -- trims whitespace
+	return strupper(key)
+end
+
+function unitscan.add_target(name)
+	local key = unitscan.get_key(name)
+	if key == '' then
+		return
 	end
+
+	if unitscan_targets[key] then
+		return
+	end
+
+	unitscan_targets[key] = true
+	unitscan.print('+ ' .. key)
+end
+
+function unitscan.remove_target(name)
+	local key = unitscan.get_key(name)
+	if key == '' then
+		return
+	end
+
+	if not unitscan_targets[key] then
+		return
+	end
+
+	unitscan_targets[key] = nil
+	unitscan.print('- ' .. key)
+end
+
+function unitscan.toggle_target(name)
+	local key = unitscan.get_key(name)
+	if key == '' then
+		return
+	end
+
+	if unitscan_targets[key] then
+		return unitscan.remove_target(key)
+	end
+
+	unitscan.add_target(key)
 end
 	
 SLASH_UNITSCAN1 = '/unitscan'
 function SlashCmdList.UNITSCAN(parameter)
-	local _, _, name = strfind(parameter, '^%s*(.-)%s*$')
+	local name = unitscan.get_key(parameter)
 	
 	if name == '' then
 		for _, key in ipairs(unitscan.sorted_targets()) do
 			unitscan.print(key)
 		end
-	else
-		unitscan.toggle_target(name)
+		return
 	end
+
+	unitscan.toggle_target(name)
 end
