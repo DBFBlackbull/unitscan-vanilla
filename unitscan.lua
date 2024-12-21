@@ -2,7 +2,10 @@ local unitscan = CreateFrame'Frame'
 local BROWN = {.7, .15, .05}
 local YELLOW = {1, 1, .15}
 local CHECK_INTERVAL = .1
-local last_zone = ''
+local last_zone = {
+	zone = '',
+	isInstance = nil,
+}
 
 unitscan_targets = {}
 
@@ -12,17 +15,17 @@ function unitscan.OnEvent()
 	end
 
 	if event == 'PLAYER_ENTERING_WORLD' then
-		return unitscan.ZONE_CHANGE()
+		return unitscan.PLAYER_ENTERING_WORLD()
 	end
 end
 
-function unitscan.ZONE_CHANGE()
+function unitscan.PLAYER_ENTERING_WORLD()
 	local zone = GetRealZoneText()
 	local isInstance = IsInInstance()
 
-	if isInstance == nil and unitscan_rares[last_zone] then
-		unitscan.print("Leaving instance "..last_zone..". Removing rare mobs.")
-		for name, _ in pairs(unitscan_rares[last_zone]) do
+	if last_zone.isInstance and unitscan_rares[last_zone.zone] then
+		unitscan.print("Leaving instance "..last_zone.zone..". Removing rare mobs.")
+		for name, _ in pairs(unitscan_rares[last_zone.zone]) do
 			unitscan.remove_target(name)
 		end
 	end
@@ -34,7 +37,10 @@ function unitscan.ZONE_CHANGE()
 		end
 	end
 
-	last_zone = zone
+	last_zone = {
+		zone = zone,
+		isInstance = isInstance,
+	}
 end
 
 do
