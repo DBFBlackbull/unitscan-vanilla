@@ -14,7 +14,7 @@ function unitscan.OnEvent()
 		return unitscan.LOAD()
 	end
 
-	if event == 'PLAYER_ENTERING_WORLD' then
+	if event == 'PLAYER_ENTERING_WORLD' or event == 'ZONE_CHANGED_NEW_AREA' then
 		return unitscan.PLAYER_ENTERING_WORLD()
 	end
 end
@@ -22,6 +22,11 @@ end
 function unitscan.PLAYER_ENTERING_WORLD()
 	local zone = GetRealZoneText()
 	local isInstance = IsInInstance()
+
+	-- Skip if ZONE_CHANGED_NEW_AREA is in the same place
+	if last_zone.zone == zone and last_zone.isInstance == isInstance then
+		return
+	end
 
 	if last_zone.isInstance and unitscan_rares[last_zone.zone] then
 		unitscan.print("Leaving instance "..last_zone.zone..". Removing rare mobs.")
@@ -400,6 +405,7 @@ unitscan:SetScript('OnUpdate', unitscan.UPDATE)
 unitscan:SetScript('OnEvent', unitscan.OnEvent)
 unitscan:RegisterEvent'VARIABLES_LOADED'
 unitscan:RegisterEvent'PLAYER_ENTERING_WORLD'
+unitscan:RegisterEvent'ZONE_CHANGED_NEW_AREA'
 
 SLASH_UNITSCAN1 = '/unitscan'
 function SlashCmdList.UNITSCAN(parameter)
