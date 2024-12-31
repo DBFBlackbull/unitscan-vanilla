@@ -6,39 +6,60 @@ local last_zone = {
 	zone = '',
 	isInstance = nil,
 }
+local unitscan_zone_targets = {}
 
 unitscan_targets = {}
+
 
 function unitscan.OnEvent()
 	if event == 'VARIABLES_LOADED' then
 		return unitscan.LOAD()
 	end
 
-	if event == 'PLAYER_ENTERING_WORLD' or event == 'ZONE_CHANGED_NEW_AREA' then
-		return unitscan.PLAYER_ENTERING_WORLD()
+	-- Triggers on loading screen for instances
+	if event == 'PLAYER_ENTERING_WORLD' then
+		local zone = GetRealZoneText()
+		local isInstance = IsInInstance()
+
+		-- Skips event on login being empty
+		if zone == '' then
+			return
+		end
+
+		return unitscan.ZONE_CHANGE(zone, isInstance)
+	end
+
+	-- Backup for some instances like 'Blackrock Spire' that has the wrong name on PLAYER_ENTERING_WORLD
+	if event == 'ZONE_CHANGED_NEW_AREA' then
+		-- Don't check while flying between zones.
+		if UnitOnTaxi("player") then
+			return
+		end
+
+		local zone = GetRealZoneText()
+		local isInstance = IsInInstance()
+
+		-- Skip if ZONE_CHANGED_NEW_AREA is in the same place
+		if zone == last_zone.zone and isInstance == last_zone.isInstance then
+			return
+		end
+
+		return unitscan.ZONE_CHANGE(zone, isInstance)
 	end
 end
 
-function unitscan.PLAYER_ENTERING_WORLD()
-	local zone = GetRealZoneText()
-	local isInstance = IsInInstance()
-
-	-- Skip if ZONE_CHANGED_NEW_AREA is in the same place
-	if last_zone.zone == zone and last_zone.isInstance == isInstance then
-		return
-	end
-
+function unitscan.ZONE_CHANGE(zone, isInstance)
 	if last_zone.isInstance and unitscan_rares[last_zone.zone] then
 		unitscan.print("Leaving instance "..last_zone.zone..". Removing rare mobs.")
 		for name, _ in pairs(unitscan_rares[last_zone.zone]) do
-			unitscan.remove_target(name)
+			unitscan.remove_target(name, unitscan_zone_targets)
 		end
 	end
 
 	if isInstance and unitscan_rares[zone] then
 		unitscan.print("Entering instance "..zone..". Scanning for rare mobs.")
 		for name, _ in pairs(unitscan_rares[zone]) do
-			unitscan.add_target(name)
+			unitscan.add_target(name, unitscan_zone_targets)
 		end
 	end
 
@@ -50,7 +71,7 @@ end
 
 do
 	local last_played
-	
+
 	function unitscan.play_sound()
 		if not last_played or GetTime() - last_played > 10 then -- 8
 			SetCVar('MasterSoundEffects', 0)
@@ -65,7 +86,16 @@ end
 function unitscan.check_for_targets()
 	for name, _ in unitscan_targets do
 		if unitscan.target(name) then
-			unitscan.toggle_target(name)
+			unitscan.remove_target(name, unitscan_targets)
+			unitscan.play_sound()
+			unitscan.flash.animation:Play()
+			unitscan.button:set_target()
+		end
+	end
+
+	for name, _ in unitscan_zone_targets do
+		if unitscan.target(name) then
+			unitscan.remove_target(name, unitscan_zone_targets)
 			unitscan.play_sound()
 			unitscan.flash.animation:Play()
 			unitscan.button:set_target()
@@ -94,7 +124,7 @@ function unitscan.LOAD()
 		flash:SetAllPoints()
 		flash:SetAlpha(0)
 		flash:SetFrameStrata'FULLSCREEN_DIALOG'
-		
+
 		local texture = flash:CreateTexture()
 		texture:SetBlendMode'ADD'
 		texture:SetAllPoints()
@@ -131,7 +161,7 @@ function unitscan.LOAD()
 			self:Show()
 		end
 	end
-	
+
 	local button = CreateFrame('Button', 'unitscan_button', UIParent)
 	button:Hide()
 	unitscan.button = button
@@ -179,7 +209,7 @@ function unitscan.LOAD()
 		self.glow.animation:Play()
 		self.shine.animation:Play()
 	end
-	
+
 	do
 		local background = button:GetNormalTexture()
 		background:SetDrawLayer'BACKGROUND'
@@ -188,7 +218,7 @@ function unitscan.LOAD()
 		background:SetPoint('TOPRIGHT', -3, -3)
 		background:SetTexCoord(0, 1, 0, .25)
 	end
-	
+
 	do
 		local title_background = button:CreateTexture(nil, 'BORDER')
 		title_background:SetTexture[[Interface\AddOns\unitscan\UI-Achievement-Title]]
@@ -212,34 +242,34 @@ function unitscan.LOAD()
 		subtitle:SetPoint('RIGHT', title )
 		subtitle:SetText'Unit Found!'
 	end
-	
+
 	do
 		local model = CreateFrame('PlayerModel', nil, button)
 		button.model = model
 		model:SetPoint('BOTTOMLEFT', button, 'TOPLEFT', 0, -4)
 		model:SetPoint('RIGHT', 0, 0)
 		model:SetHeight(button:GetWidth() * .6)
-		
+
 		do
 			local last_update, delay
 			function model:on_update()
 				this:SetFacing(this:GetFacing() + (GetTime() - last_update) * math.pi / 4)
 				last_update = GetTime()
 			end
-			
+
 			function model:on_update_model()
 				if delay > 0 then
 					delay = delay - 1
 					return
 				end
-				
+
 				this:SetScript('OnUpdateModel', nil)
 				this:SetScript('OnUpdate', this.on_update)
 				this:SetModelScale(.75)
-				this:SetAlpha(1)	
+				this:SetAlpha(1)
 				last_update = GetTime()
 			end
-			
+
 			function model:reset()
 				self:SetAlpha(0)
 				self:SetFacing(0)
@@ -251,7 +281,7 @@ function unitscan.LOAD()
 			end
 		end
 	end
-	
+
 	do
 		local close = CreateFrame('Button', nil, button, 'UIPanelCloseButton')
 		close:SetPoint('TOPRIGHT', 0, 0)
@@ -260,7 +290,7 @@ function unitscan.LOAD()
 		close:SetScale(.8)
 		close:SetHitRectInsets(8, 8, 8, 8)
 	end
-	
+
 	do
 		local glow = button.model:CreateTexture(nil, 'OVERLAY')
 		button.glow = glow
@@ -301,7 +331,7 @@ function unitscan.LOAD()
 		shine:SetBlendMode'ADD'
 		shine:SetTexCoord(.78125, .912109375, 0, .28125)
 		shine:SetAlpha(0)
-		
+
 		shine.animation = CreateFrame'Frame'
 		shine.animation:Hide()
 		shine.animation:SetScript('OnUpdate', function()
@@ -351,6 +381,9 @@ function unitscan.sorted_targets()
 	for key in pairs(unitscan_targets) do
 		tinsert(sorted_targets, key)
 	end
+	for key in pairs(unitscan_zone_targets) do
+		tinsert(sorted_targets, key)
+	end
 	sort(sorted_targets, function(key1, key2) return key1 < key2 end)
 	return sorted_targets
 end
@@ -360,45 +393,45 @@ function unitscan.get_key(name)
 	return strupper(key)
 end
 
-function unitscan.add_target(name)
+function unitscan.add_target(name, map)
 	local key = unitscan.get_key(name)
 	if key == '' then
 		return
 	end
 
-	if unitscan_targets[key] then
+	if map[key] then
 		return
 	end
 
-	unitscan_targets[key] = true
+	map[key] = true
 	unitscan.print('+ ' .. key)
 end
 
-function unitscan.remove_target(name)
+function unitscan.remove_target(name, map)
 	local key = unitscan.get_key(name)
 	if key == '' then
 		return
 	end
 
-	if not unitscan_targets[key] then
+	if not map[key] then
 		return
 	end
 
-	unitscan_targets[key] = nil
+	map[key] = nil
 	unitscan.print('- ' .. key)
 end
 
-function unitscan.toggle_target(name)
+function unitscan.toggle_target(name, map)
 	local key = unitscan.get_key(name)
 	if key == '' then
 		return
 	end
 
-	if unitscan_targets[key] then
-		return unitscan.remove_target(key)
+	if map[key] then
+		return unitscan.remove_target(key, map)
 	end
 
-	unitscan.add_target(key)
+	unitscan.add_target(key, map)
 end
 
 unitscan:SetScript('OnUpdate', unitscan.UPDATE)
@@ -412,14 +445,16 @@ function SlashCmdList.UNITSCAN(parameter)
 	local name = unitscan.get_key(parameter)
 
 	if name == '' then
-		if next(unitscan_targets) == nil then
+		local sorted_targets = unitscan.sorted_targets()
+		if next(sorted_targets) == nil then
 			return unitscan.print("Not scanning for any units")
 		end
-		for _, key in ipairs(unitscan.sorted_targets()) do
+
+		for _, key in ipairs(sorted_targets) do
 			unitscan.print(key)
 		end
 		return
 	end
 
-	unitscan.toggle_target(name)
+	unitscan.toggle_target(name, unitscan_targets)
 end
