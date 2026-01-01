@@ -1,4 +1,4 @@
-local unitscan = CreateFrame'Frame'
+local unitscan = CreateFrame('Frame')
 local BROWN = {.7, .15, .05}
 local YELLOW = {1, 1, .15}
 local CHECK_INTERVAL = .1
@@ -76,8 +76,8 @@ do
 		if not last_played or GetTime() - last_played > 10 then -- 8
 			SetCVar('MasterSoundEffects', 0)
 			SetCVar('MasterSoundEffects', 1)
-			PlaySoundFile[[Interface\AddOns\unitscan\Event_wardrum_ogre.ogg]]
-			PlaySoundFile[[Interface\AddOns\unitscan\scourge_horn.ogg]]
+			PlaySoundFile([[Interface\AddOns\unitscan\Event_wardrum_ogre.ogg]])
+			PlaySoundFile([[Interface\AddOns\unitscan\scourge_horn.ogg]])
 			last_played = GetTime()
 		end
 	end
@@ -111,26 +111,26 @@ do
 		UIErrorsFrame_OnEvent = pass
 		TargetByName(name, true)
 		UIErrorsFrame_OnEvent = orig
-		local target = UnitName'target'
-		return target and strupper(target) == name
+		local target = UnitName('target')
+		return target and string.upper(target) == name
 	end
 end
 
 function unitscan.LOAD()
 	do
-		local flash = CreateFrame'Frame'
+		local flash = CreateFrame('Frame')
 		unitscan.flash = flash
 		flash:Show()
 		flash:SetAllPoints()
 		flash:SetAlpha(0)
-		flash:SetFrameStrata'FULLSCREEN_DIALOG'
+		flash:SetFrameStrata('FULLSCREEN_DIALOG')
 
 		local texture = flash:CreateTexture()
-		texture:SetBlendMode'ADD'
+		texture:SetBlendMode('ADD')
 		texture:SetAllPoints()
-		texture:SetTexture[[Interface\FullScreenTextures\LowHealth]]
+		texture:SetTexture([[Interface\FullScreenTextures\LowHealth]])
 
-		flash.animation = CreateFrame'Frame'
+		flash.animation = CreateFrame('Frame')
 		flash.animation:Hide()
 		flash.animation:SetScript('OnUpdate', function()
 			local t = GetTime() - this.t0
@@ -180,10 +180,10 @@ function unitscan.LOAD()
 	end)
 	button:SetScript('OnMouseUp', function()
 		this:StopMovingOrSizing()
-		this:RegisterForClicks'LeftButtonDown'
+		this:RegisterForClicks('LeftButtonDown')
 	end)
-	button:SetFrameStrata'FULLSCREEN_DIALOG'
-	button:SetNormalTexture[[Interface\AddOns\unitscan\UI-Achievement-Parchment-Horizontal]]
+	button:SetFrameStrata('FULLSCREEN_DIALOG')
+	button:SetNormalTexture([[Interface\AddOns\unitscan\UI-Achievement-Parchment-Horizontal]])
 	button:SetBackdrop{
 		tile = true,
 		edgeSize = 16,
@@ -212,7 +212,7 @@ function unitscan.LOAD()
 
 	do
 		local background = button:GetNormalTexture()
-		background:SetDrawLayer'BACKGROUND'
+		background:SetDrawLayer('BACKGROUND')
 		background:ClearAllPoints()
 		background:SetPoint('BOTTOMLEFT', 3, 3)
 		background:SetPoint('TOPRIGHT', -3, -3)
@@ -221,7 +221,7 @@ function unitscan.LOAD()
 
 	do
 		local title_background = button:CreateTexture(nil, 'BORDER')
-		title_background:SetTexture[[Interface\AddOns\unitscan\UI-Achievement-Title]]
+		title_background:SetTexture([[Interface\AddOns\unitscan\UI-Achievement-Title]])
 		title_background:SetPoint('TOPRIGHT', -5, -5)
 		title_background:SetPoint('LEFT', 5, 0)
 		title_background:SetHeight(18)
@@ -240,7 +240,7 @@ function unitscan.LOAD()
 		subtitle:SetTextColor(0, 0, 0)
 		subtitle:SetPoint('TOPLEFT', title, 'BOTTOMLEFT', 0, -4)
 		subtitle:SetPoint('RIGHT', title )
-		subtitle:SetText'Unit Found!'
+		subtitle:SetText('Unit Found!')
 	end
 
 	do
@@ -297,12 +297,12 @@ function unitscan.LOAD()
 		glow:SetPoint('CENTER', button, 'CENTER')
 		glow:SetWidth(400 / 300 * button:GetWidth())
 		glow:SetHeight(171 / 70 * button:GetHeight())
-		glow:SetTexture[[Interface\AddOns\unitscan\UI-Achievement-Alert-Glow]]
-		glow:SetBlendMode'ADD'
+		glow:SetTexture([[Interface\AddOns\unitscan\UI-Achievement-Alert-Glow]])
+		glow:SetBlendMode('ADD')
 		glow:SetTexCoord(0, .78125, 0, .66796875)
 		glow:SetAlpha(0)
 
-		glow.animation = CreateFrame'Frame'
+		glow.animation = CreateFrame('Frame')
 		glow.animation:Hide()
 		glow.animation:SetScript('OnUpdate', function()
 			local t = GetTime() - this.t0
@@ -327,12 +327,12 @@ function unitscan.LOAD()
 		shine:SetPoint('TOPLEFT', button, 0, 8)
 		shine:SetWidth(67 / 300 * button:GetWidth())
 		shine:SetHeight(1.28 * button:GetHeight())
-		shine:SetTexture[[Interface\AddOns\unitscan\UI-Achievement-Alert-Glow]]
-		shine:SetBlendMode'ADD'
+		shine:SetTexture([[Interface\AddOns\unitscan\UI-Achievement-Alert-Glow]])
+		shine:SetBlendMode('ADD')
 		shine:SetTexCoord(.78125, .912109375, 0, .28125)
 		shine:SetAlpha(0)
 
-		shine.animation = CreateFrame'Frame'
+		shine.animation = CreateFrame('Frame')
 		shine.animation:Hide()
 		shine.animation:SetScript('OnUpdate', function()
 			local t = GetTime() - this.t0
@@ -371,9 +371,7 @@ do
 end
 
 function unitscan.print(msg)
-	if DEFAULT_CHAT_FRAME then
-		DEFAULT_CHAT_FRAME:AddMessage(LIGHTYELLOW_FONT_COLOR_CODE .. '<unitscan> ' .. msg)
-	end
+	DEFAULT_CHAT_FRAME:AddMessage(LIGHTYELLOW_FONT_COLOR_CODE .. '<unitscan> ' .. tostring(msg))
 end
 
 function unitscan.sorted_targets()
@@ -389,8 +387,8 @@ function unitscan.sorted_targets()
 end
 
 function unitscan.get_key(name)
-	local _, _, key = strfind(name, '^%s*(.-)%s*$') -- trims whitespace
-	return strupper(key)
+	local _, _, key = string.find(name, '^%s*(.-)%s*$') -- trims whitespace
+	return string.upper(key)
 end
 
 function unitscan.add_target(name, map)
@@ -436,9 +434,9 @@ end
 
 unitscan:SetScript('OnUpdate', unitscan.UPDATE)
 unitscan:SetScript('OnEvent', unitscan.OnEvent)
-unitscan:RegisterEvent'VARIABLES_LOADED'
-unitscan:RegisterEvent'PLAYER_ENTERING_WORLD'
-unitscan:RegisterEvent'ZONE_CHANGED_NEW_AREA'
+unitscan:RegisterEvent('VARIABLES_LOADED')
+unitscan:RegisterEvent('PLAYER_ENTERING_WORLD')
+unitscan:RegisterEvent('ZONE_CHANGED_NEW_AREA')
 
 SLASH_UNITSCAN1 = '/unitscan'
 function SlashCmdList.UNITSCAN(parameter)
